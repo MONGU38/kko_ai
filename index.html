@@ -351,235 +351,245 @@
             setCurrentScreen('main');
           };
 
+          // 로그인 화면
           if (currentScreen === 'login') {
-            return React.createElement('div', { className: "min-h-screen bg-gradient-to-b from-orange-50 to-orange-100 p-4" },
-              React.createElement('div', { className: "max-w-md mx-auto pt-12" },
-                React.createElement('div', { className: "text-center mb-12" },
-                  React.createElement('h1', { className: "text-3xl font-bold text-orange-600 mb-2" }, "꼬꼬너"),
-                  React.createElement('p', { className: "text-gray-600 text-sm" }, "꼬리에 꼬리를 물어 찾은 너"),
-                  React.createElement('p', { className: "text-orange-500 text-xs mt-2" }, "AI가 도와드립니다")
-                ),
-                React.createElement('div', { className: "bg-white rounded-2xl shadow-lg p-6" },
-                  React.createElement('div', { className: "space-y-4" },
-                    React.createElement('input', {
-                      type: "text",
-                      placeholder: "아이디",
-                      className: "w-full p-4 border border-gray-200 rounded-xl focus:outline-none focus:border-orange-400",
-                      value: user.username,
-                      onChange: (e) => setUser({...user, username: e.target.value})
-                    }),
-                    React.createElement('input', {
-                      type: "password",
-                      placeholder: "비밀번호",
-                      className: "w-full p-4 border border-gray-200 rounded-xl focus:outline-none focus:border-orange-400",
-                      value: user.password,
-                      onChange: (e) => setUser({...user, password: e.target.value})
-                    }),
-                    React.createElement('button', {
-                      onClick: handleLogin,
-                      className: "w-full bg-orange-500 text-white py-4 rounded-xl font-semibold hover:bg-orange-600 transition-colors"
-                    }, "로그인"),
-                    React.createElement('button', {
-                      className: "w-full bg-gray-100 text-gray-700 py-4 rounded-xl font-semibold hover:bg-gray-200 transition-colors"
-                    }, "회원가입")
-                  )
-                )
-              )
+            return (
+              <div className="min-h-screen bg-gradient-to-b from-orange-50 to-orange-100 p-4">
+                <div className="max-w-md mx-auto pt-12">
+                  <div className="text-center mb-12">
+                    <h1 className="text-3xl font-bold text-orange-600 mb-2">꼬꼬너</h1>
+                    <p className="text-gray-600 text-sm">꼬리에 꼬리를 물어 찾은 너</p>
+                    <p className="text-orange-500 text-xs mt-2">AI가 도와드립니다</p>
+                  </div>
+                  
+                  <div className="bg-white rounded-2xl shadow-lg p-6">
+                    <div className="space-y-4">
+                      <input
+                        type="text"
+                        placeholder="아이디"
+                        className="w-full p-4 border border-gray-200 rounded-xl focus:outline-none focus:border-orange-400"
+                        value={user.username}
+                        onChange={(e) => setUser({...user, username: e.target.value})}
+                      />
+                      <input
+                        type="password"
+                        placeholder="비밀번호"
+                        className="w-full p-4 border border-gray-200 rounded-xl focus:outline-none focus:border-orange-400"
+                        value={user.password}
+                        onChange={(e) => setUser({...user, password: e.target.value})}
+                      />
+                      <button
+                        onClick={handleLogin}
+                        className="w-full bg-orange-500 text-white py-4 rounded-xl font-semibold hover:bg-orange-600 transition-colors"
+                      >
+                        로그인
+                      </button>
+                      <button
+                        className="w-full bg-gray-100 text-gray-700 py-4 rounded-xl font-semibold hover:bg-gray-200 transition-colors"
+                      >
+                        회원가입
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             );
           }
 
+          // 메인 채팅 화면
           if (currentScreen === 'main') {
-            return React.createElement('div', { className: "min-h-screen bg-gray-50 flex flex-col" },
-              React.createElement('div', { className: "bg-white border-b border-gray-200 p-4 flex items-center justify-between" },
-                React.createElement('div', { className: "flex items-center gap-2" },
-                  React.createElement(Bot, { className: "text-orange-500", size: 24 }),
-                  React.createElement('h1', { className: "text-lg font-bold text-gray-800" }, "꼬꼬너 AI")
-                ),
-                React.createElement('div', { className: "flex gap-2" },
-                  React.createElement('button', {
-                    onClick: resetApp,
-                    className: "p-2 hover:bg-gray-100 rounded-lg transition-colors",
-                    title: "초기화"
-                  }, React.createElement(RotateCcw, { size: 20, className: "text-gray-600" })),
-                  React.createElement('button', {
-                    onClick: () => setCurrentScreen('login'),
-                    className: "p-2 hover:bg-gray-100 rounded-lg transition-colors",
-                    title: "로그아웃"
-                  }, React.createElement(LogOut, { size: 20, className: "text-gray-600" }))
-                )
-              ),
-              React.createElement('div', { className: "flex-1 overflow-y-auto p-4 space-y-4 pb-20" },
-                ...chatMessages.map((message, index) =>
-                  React.createElement('div', { key: index, className: `flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}` },
-                    React.createElement('div', { className: `max-w-xs md:max-w-md lg:max-w-lg xl:max-w-xl p-3 rounded-lg ${message.type === 'user' ? 'bg-orange-500 text-white' : 'bg-white text-gray-800 border border-gray-200'}` },
-                      React.createElement('div', { className: "flex items-start gap-2" },
-                        message.type === 'ai' && React.createElement(Bot, { size: 18, className: "text-orange-500 mt-0.5 flex-shrink-0" }),
-                        React.createElement('div', { className: "flex-1" },
-                          React.createElement('p', { className: "text-sm whitespace-pre-wrap" }, message.content),
-                          message.showButtons && React.createElement('div', { className: "flex gap-2 mt-3" },
-                            ...message.showButtons.map((button, btnIndex) =>
-                              React.createElement('button', {
-                                key: btnIndex,
-                                onClick: () => {
-                                  if (chatPhase === 'category') {
-                                    handleCategoryChange(button);
-                                  } else if (chatPhase === 'additional') {
-                                    handleAdditionalResponse(button);
-                                  } else if (chatPhase === 'complete') {
-                                    handleMatchingRequest(button);
-                                  }
-                                },
-                                className: "px-3 py-1 bg-orange-500 text-white text-xs rounded-full hover:bg-orange-600 transition-colors"
-                              }, button)
-                            )
-                          ),
-                          message.showSkipButton && chatPhase === 'questioning' && React.createElement('div', { className: "mt-3" },
-                            React.createElement('button', {
-                              onClick: () => handleQuestionResponse('해당사항없음'),
-                              className: "px-3 py-1 bg-gray-400 text-white text-xs rounded-full hover:bg-gray-500 transition-colors"
-                            }, "해당사항없음")
-                          )
-                        )
-                      )
-                    )
-                  )
-                ),
-                isAITyping && React.createElement('div', { className: "flex justify-start" },
-                  React.createElement('div', { className: "bg-white border border-gray-200 p-3 rounded-lg" },
-                    React.createElement('div', { className: "flex items-center gap-2" },
-                      React.createElement(Bot, { size: 18, className: "text-orange-500" }),
-                      React.createElement('div', { className: "flex gap-1" },
-                        React.createElement('div', { className: "w-2 h-2 bg-gray-400 rounded-full animate-bounce" }),
-                        React.createElement('div', { className: "w-2 h-2 bg-gray-400 rounded-full animate-bounce", style: {animationDelay: '0.1s'} }),
-                        React.createElement('div', { className: "w-2 h-2 bg-gray-400 rounded-full animate-bounce", style: {animationDelay: '0.2s'} })
-                      )
-                    )
-                  )
-                ),
-                React.createElement('div', { ref: messagesEndRef })
-              ),
-              chatPhase === 'category' && React.createElement('div', { className: "fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4" },
-                React.createElement('div', { className: "max-w-md mx-auto" },
-                  React.createElement('div', { className: "grid grid-cols-2 gap-2 mb-4" },
-                    ...categories.map((category, index) =>
-                      React.createElement('button', {
-                        key: index,
-                        onClick: () => handleCategorySelect(category),
-                        className: `p-3 rounded-lg text-sm font-medium transition-colors ${selectedCategory === category ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`
-                      }, category)
-                    )
-                  ),
-                  React.createElement('button', {
-                    onClick: () => {
-                      const mockMatches = Math.random() > 0.5 ? [
-                        { name: '김영희', matchCount: 12 },
-                        { name: '박철수', matchCount: 8 }
-                      ] : [];
-                      setMatches(mockMatches);
-                      
-                      if (mockMatches.length === 0) {
-                        setChatMessages(prev => [...prev, {
-                          type: 'ai',
-                          content: '앱 초기입니다. 시간이 흐를수록 사용자가 늘어나므로 자주 들어와서 매칭 결과를 확인해 주세요.'
-                        }]);
-                      } else {
-                        setChatMessages(prev => [...prev, {
-                          type: 'ai',
-                          content: '매칭 결과를 찾았습니다!'
-                        }]);
-                      }
-                    },
-                    className: "w-full bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
-                  }, React.createElement(Search, { size: 18 }), "매칭 결과")
-                )
-              ),
-              matches.length > 0 && React.createElement('div', { className: "fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4" },
-                React.createElement('div', { className: "max-w-md mx-auto" },
-                  React.createElement('h3', { className: "font-semibold text-gray-800 mb-3" }, "매칭 결과"),
-                  React.createElement('div', { className: "space-y-2 max-h-60 overflow-y-auto" },
-                    ...matches.map((match, index) =>
-                      React.createElement('div', { key: index, className: "bg-orange-50 p-3 rounded-lg flex items-center justify-between" },
-                        React.createElement('div', {},
-                          React.createElement('span', { className: "font-semibold text-gray-800" }, match.name),
-                          React.createElement('span', { className: "text-orange-600 ml-2" }, `(${match.matchCount}개 일치)`)
-                        ),
-                        React.createElement('button', {
-                          onClick: () => handleMatchSelect(match),
-                          className: "bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2"
-                        }, React.createElement(MessageCircle, { size: 16 }), "채팅하기")
-                      )
-                    )
-                  )
-                )
-              ),
-              (chatPhase === 'questioning' || chatPhase === 'additional') && React.createElement('div', { className: "fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4" },
-                React.createElement('div', { className: "max-w-md mx-auto flex gap-2" },
-                  React.createElement('input', {
-                    type: "text",
-                    ref: inputRef,
-                    value: currentMessage,
-                    onChange: (e) => setCurrentMessage(e.target.value),
-                    onKeyPress: (e) => e.key === 'Enter' && handleSendMessage(),
-                    placeholder: "메시지를 입력하세요...",
-                    className: "flex-1 p-3 border border-gray-200 rounded-lg focus:outline-none focus:border
-                    className: "flex-1 p-3 border border-gray-200 rounded-lg focus:outline-none focus:border-orange-400"
-                 }),
-                 React.createElement('button', {
-                   onClick: handleSendMessage,
-                   className: "bg-orange-500 text-white px-4 py-3 rounded-lg hover:bg-orange-600 transition-colors"
-                 }, React.createElement(Send, { size: 18 }))
-               )
-             )
-           );
-         }
+            return (
+              <div className="min-h-screen bg-gray-50 flex flex-col">
+                {/* 헤더 */}
+                <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Bot className="text-orange-500" size={24} />
+                    <h1 className="text-lg font-bold text-gray-800">꼬꼬너 AI</h1>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={resetApp}
+                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                      title="초기화"
+                    >
+                      <RotateCcw size={20} className="text-gray-600" />
+                    </button>
+                    <button
+                      onClick={() => setCurrentScreen('login')}
+                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                      title="로그아웃"
+                    >
+                      <LogOut size={20} className="text-gray-600" />
+                    </button>
+                  </div>
+                </div>
 
-         if (currentScreen === 'privateChat' && selectedMatch) {
-           return React.createElement('div', { className: "min-h-screen bg-gray-50 flex flex-col" },
-             React.createElement('div', { className: "bg-white border-b border-gray-200 p-4 flex items-center gap-3" },
-               React.createElement('button', {
-                 onClick: () => setCurrentScreen('main'),
-                 className: "p-2 hover:bg-gray-100 rounded-lg transition-colors"
-               }, React.createElement(ArrowLeft, { size: 20 })),
-               React.createElement('h2', { className: "text-lg font-semibold text-gray-800" }, `${selectedMatch.name}님과의 채팅`)
-             ),
-             React.createElement('div', { className: "flex-1 overflow-y-auto p-4 space-y-4 pb-20" },
-               ...privateMessages.map((message, index) =>
-                 React.createElement('div', { key: index, className: `flex ${message.type === 'me' ? 'justify-end' : message.type === 'info' ? 'justify-center' : 'justify-start'}` },
-                   React.createElement('div', { className: `max-w-xs md:max-w-md p-3 rounded-lg ${message.type === 'me' ? 'bg-orange-500 text-white' : message.type === 'info' ? 'bg-blue-50 text-blue-800 border border-blue-200' : 'bg-white text-gray-800 border border-gray-200'}` },
-                     React.createElement('p', { className: "text-sm whitespace-pre-wrap" }, message.content)
-                   )
-                 )
-               )
-             ),
-             React.createElement('div', { className: "fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4" },
-               React.createElement('div', { className: "max-w-md mx-auto" },
-                 React.createElement('div', { className: "flex gap-2 mb-3" },
-                   React.createElement('input', {
-                     type: "text",
-                     value: privateChatMessage,
-                     onChange: (e) => setPrivateChatMessage(e.target.value),
-                     onKeyPress: (e) => e.key === 'Enter' && handlePrivateMessageSend(),
-                     placeholder: "메시지를 입력하세요...",
-                     className: "flex-1 p-3 border border-gray-200 rounded-lg focus:outline-none focus:border-orange-400"
-                   }),
-                   React.createElement('button', {
-                     onClick: handlePrivateMessageSend,
-                     className: "bg-orange-500 text-white px-4 py-3 rounded-lg hover:bg-orange-600 transition-colors"
-                   }, React.createElement(Send, { size: 18 }))
-                 ),
-                 React.createElement('button', {
-                   onClick: () => setCurrentScreen('main'),
-                   className: "w-full bg-gray-100 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors"
-                 }, "나가기")
-               )
-             )
-           );
-         }
+                {/* 채팅 영역 */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-20">
+                  {chatMessages.map((message, index) => (
+                    <div key={index} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-xs md:max-w-md lg:max-w-lg xl:max-w-xl p-3 rounded-lg ${
+                        message.type === 'user' 
+                          ? 'bg-orange-500 text-white' 
+                          : 'bg-white text-gray-800 border border-gray-200'
+                      }`}>
+                        <div className="flex items-start gap-2">
+                          {message.type === 'ai' && <Bot size={18} className="text-orange-500 mt-0.5 flex-shrink-0" />}
+                          <div className="flex-1">
+                            <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                            {message.showButtons && (
+                              <div className="flex gap-2 mt-3">
+                                {message.showButtons.map((button, btnIndex) => (
+                                  <button
+                                    key={btnIndex}
+                                    onClick={() => {
+                                      if (chatPhase === 'category') {
+                                        handleCategoryChange(button);
+                                      } else if (chatPhase === 'additional') {
+                                        handleAdditionalResponse(button);
+                                      } else if (chatPhase === 'complete') {
+                                        handleMatchingRequest(button);
+                                      }
+                                    }}
+                                    className="px-3 py-1 bg-orange-500 text-white text-xs rounded-full hover:bg-orange-600 transition-colors"
+                                  >
+                                    {button}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                            {message.showSkipButton && chatPhase === 'questioning' && (
+                              <div className="mt-3">
+                                <button
+                                  onClick={() => handleQuestionResponse('해당사항없음')}
+                                  className="px-3 py-1 bg-gray-400 text-white text-xs rounded-full hover:bg-gray-500 transition-colors"
+                                >
+                                  해당사항없음
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {isAITyping && (
+                    <div className="flex justify-start">
+                      <div className="bg-white border border-gray-200 p-3 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <Bot size={18} className="text-orange-500" />
+                          <div className="flex gap-1">
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div ref={messagesEndRef} />
+                </div>
 
-         return null;
-       };
+                {/* 카테고리 선택 영역 */}
+                {chatPhase === 'category' && (
+                  <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
+                    <div className="max-w-md mx-auto">
+                      <div className="grid grid-cols-2 gap-2 mb-4">
+                        {categories.map((category, index) => (
+                          <button
+                            key={index}
+                            onClick={() => handleCategorySelect(category)}
+                            className={`p-3 rounded-lg text-sm font-medium transition-colors ${
+                              selectedCategory === category
+                                ? 'bg-orange-500 text-white'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                          >
+                            {category}
+                          </button>
+                        ))}
+                      </div>
+                      <button
+                        onClick={() => {
+                          const mockMatches = Math.random() > 0.5 ? [
+                            { name: '김영희', matchCount: 12 },
+                            { name: '박철수', matchCount: 8 }
+                          ] : [];
+                          setMatches(mockMatches);
+                          
+                          if (mockMatches.length === 0) {
+                            setChatMessages(prev => [...prev, {
+                              type: 'ai',
+                              content: '앱 초기입니다. 시간이 흐를수록 사용자가 늘어나므로 자주 들어와서 매칭 결과를 확인해 주세요.'
+                            }]);
+                          } else {
+                            setChatMessages(prev => [...prev, {
+                              type: 'ai',
+                              content: '매칭 결과를 찾았습니다!'
+                            }]);
+                          }
+                        }}
+                        className="w-full bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Search size={18} />
+                        매칭 결과
+                      </button>
+                    </div>
+                  </div>
+                )}
 
-       ReactDOM.render(React.createElement(KokkoNeoAIApp), document.getElementById('root'));
-   </script>
-</body>
-</html>  
+                {/* 매칭 결과 표시 */}
+                {matches.length > 0 && (
+                  <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
+                    <div className="max-w-md mx-auto">
+                      <h3 className="font-semibold text-gray-800 mb-3">매칭 결과</h3>
+                      <div className="space-y-2 max-h-60 overflow-y-auto">
+                        {matches.map((match, index) => (
+                          <div key={index} className="bg-orange-50 p-3 rounded-lg flex items-center justify-between">
+                            <div>
+                              <span className="font-semibold text-gray-800">{match.name}</span>
+                              <span className="text-orange-600 ml-2">({match.matchCount}개 일치)</span>
+                            </div>
+                            <button
+                              onClick={() => handleMatchSelect(match)}
+                              className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2"
+                            >
+                              <MessageCircle size={16} />
+                              채팅하기
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 메시지 입력 영역 */}
+                {(chatPhase === 'questioning' || chatPhase === 'additional') && (
+                  <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
+                    <div className="max-w-md mx-auto flex gap-2">
+                      <input
+                        type="text"
+                        ref={inputRef}
+                        value={currentMessage}
+                        onChange={(e) => setCurrentMessage(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                        placeholder="메시지를 입력하세요..."
+                        className="flex-1 p-3 border border-gray-200 rounded-lg focus:outline-none focus:border-orange-400"
+                      />
+                      <button
+                        onClick={handleSendMessage}
+                        className="bg-orange-500 text-white px-4 py-3 rounded-lg hover:bg-orange-600 transition-colors"
+                      >
+                        <Send size={18} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          }
+
+          // 1:1 채팅 화면
