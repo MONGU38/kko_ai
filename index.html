@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>꼬꼬너 - 꼬리에 꼬리를 물어 찾은 너</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        const { 
+          ChevronDown, 
+          ChevronUp, 
+          MessageCircle, 
+          Home, 
+          Search, 
+          ArrowLeft, 
+          Send,
+          Bot,
+          User,
+          RotateCcw,
+          LogOut
+        } = lucide;
+
+        const KokkoNeoAIApp = () => {
+          const [currentScreen, setCurrentScreen] = useState('login');
+          const [user, setUser] = useState({ username: '', password: '' });
+          const [selectedCategory, setSelectedCategory] = useState('');
+          const [chatMessages, setChatMessages] = useState([]);
+          const [currentMessage, setCurrentMessage] = useState('');
+          const [isAITyping, setIsAITyping] = useState(false);
+          const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+          const [userResponses, setUserResponses] = useState({});
+          const [chatPhase, setChatPhase] = useState('category');
+          const [matches, setMatches] = useState([]);
+          const [selectedMatch, setSelectedMatch] = useState(null);
+          const [privateMessages, setPrivateMessages] = useState([]);
+          const [privateChatMessage, setPrivateChatMessage] = useState('');
+          
+          const messagesEndRef = useRef(null);
+          const inputRef = useRef(null);
+
+          const categories = [
+            '실종아동 및 가족',
+            '이산가족', 
+            '동네친구',
+            '학교친구',
+            '연인찾기',
+            '군대친구',
+            '직장친구'
+          ];
+
+          const basicQuestions = [
+            '이름을 알려주세요 (가명이나 별명도 가능해요)',
+            '태어난 생년월일을 알려주세요',
+            '다니셨던 초중고대학과 전공을 알려주세요',
+            '부모님의 이름과 직업을 알려주세요',
+            '형제자매의 이름과 별명을 알려주세요',
+            '신체 특징이 있다면 알려주세요 (문신, 점, 상처 등)',
+            '많이 앓으셨던 병이 있다면 알려주세요',
+            '살으셨던 동네들을 모두 알려주세요'
+          ];
+
+          const categoryQuestions = {
+            '실종아동 및 가족': [
+              '살던 집의 형태는 어떠셨나요? (한옥, 양옥, 다세대, 연립, 아파트)',
+              '몇 층에 사셨는지 기억나시나요?',
+              '대문의 색깔은 어떠셨나요?',
+              '대문이 나무였는지 철제였는지 기억나시나요?',
+              '집 앞에 계단이 있었나요?',
+              '집 근처에 우물, 놀이터, 공원이 있었나요?',
+              '집 근처에 지하철, 기차역, 버스정류소가 있었나요?',
+              '집에 십자가나 불교 관련 물건이 있었나요?',
+              '마당에 있던 것들을 기억하시나요?'
+            ],
+            '이산가족': [
+              '본인의 고향은 어디인가요?',
+              '찾고 계신 분의 고향은 어디인가요?',
+              '본인의 신체 특징을 알려주세요',
+              '찾고 계신 분의 신체 특징을 알려주세요',
+              '외가나 친가에서 기억나는 이름들을 모두 알려주세요',
+              '외가나 친가들이 살던 동네를 알려주세요',
+              '헤어진 년도를 알려주세요',
+              '헤어진 이유를 알려주세요'
+            ],
+            '동네친구': [
+              '살던 집의 형태는 어떠셨나요? (한옥, 양옥, 다세대, 연립, 아파트)',
+              '몇 층에 사셨는지 기억나시나요?',
+              '대문의 색깔은 어떠셨나요?',
+              '대문이 나무였는지 철제였는지 기억나시나요?',
+              '집 앞에 계단이 있었나요?',
+              '집 근처에 우물, 놀이터, 공원이 있었나요?',
+              '집 근처에 지하철, 기차역, 버스정류소가 있었나요?',
+              '집에 십자가나 불교 관련 물건이 있었나요?'
+            ],
+            '학교친구': [
+              '찾고 계신 친구의 이름이나 별명을 알려주세요',
+              '학교명을 알려주세요',
+              '학과나 전공을 알려주세요',
+              '잘 하던 과목이 있었나요?',
+              '친구와 학교에서 있었던 해프닝이 있나요?',
+              '어려움이나 곤경에서 도와준 일이 있나요?',
+              '소풍이나 수학여행은 어디로 갔었나요?',
+              '수학여행에서 기억에 남는 일이 있나요?'
+            ],
+            '연인찾기': [
+              '연인의 성별을 알려주세요',
+              '연인의 이름을 알려주세요',
+              '연인의 직업을 알려주세요',
+              '연인을 만난 년도를 알려주세요',
+              '헤어진 년도를 알려주세요',
+              '헤어진 이유를 알려주세요',
+              '기억에 남은 여행지와 연도를 알려주세요',
+              '기억에 남는 사건이 있나요?'
+            ],
+            '군대친구': [
+              '찾고 계신 분의 이름이나 별명을 알려주세요',
+              '계급을 알려주세요',
+              '군번을 기억하시나요?',
+              '학력을 알려주세요',
+              '형제 중 몇 남 몇 녀인지 알려주세요',
+              '신체 특징이나 점, 상처가 있었나요?',
+              '고향이 어디인가요?',
+              '살던 동네를 알려주세요',
+              '부모님의 직업을 알려주세요'
+            ],
+            '직장친구': [
+              '찾고 계신 분의 이름을 알려주세요',
+              '직책을 알려주세요',
+              '직무를 알려주세요 (영업, 판매, 경리 등)',
+              '회사명을 알려주세요',
+              '회사 주소를 알려주세요 (여의도, 명동 등)',
+              '회사 대표 이름을 알려주세요',
+              '업종을 알려주세요'
+            ]
+          };
+
+          const scrollToBottom = () => {
+            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+          };
+
+          useEffect(() => {
+            scrollToBottom();
+            if ((chatPhase === 'questioning' || chatPhase === 'additional') && inputRef.current) {
+              setTimeout(() => {
+                inputRef.current?.focus();
+              }, 100);
+            }
+          }, [chatMessages, isAITyping, chatPhase]);
+
+          const simulateAITyping = (message, callback) => {
+            setIsAITyping(true);
+            setTimeout(() => {
+              setChatMessages(prev => [...prev, { 
+                type: 'ai', 
+                content: message,
+                showSkipButton: chatPhase === 'questioning' || (callback && chatPhase !== 'additional' && chatPhase !== 'complete')
+              }]);
+              setIsAITyping(false);
+              if (callback) callback();
+            }, 1000 + Math.random() * 1000);
+          };
+
+          const handleLogin = () => {
+            if (user.username && user.password) {
+              setCurrentScreen('main');
+              setChatMessages([{
+                type: 'ai',
+                content: '안녕하세요! 꼬꼬너에 오신 것을 환영합니다. 아래 카테고리에서 선택해 주세요.'
+              }]);
+            }
+          };
+
+          const handleCategorySelect = (category) => {
+            if (selectedCategory === category) return;
+            
+            if (selectedCategory && selectedCategory !== category) {
+              setChatMessages(prev => [...prev, 
+                { type: 'user', content: category },
+                { type: 'ai', content: `${category}로 변경하시겠습니까?`, showButtons: ['예', '아니오'] }
+              ]);
+              return;
+            }
+            
+            setSelectedCategory(category);
+            setChatMessages(prev => [...prev, 
+              { type: 'user', content: category },
+              { type: 'ai', content: `${category}에 대한 자료를 수집하겠습니다. 먼저 기본 정보부터 알려주세요.` }
+            ]);
+            setChatPhase('questioning');
+            setCurrentQuestionIndex(0);
+            
+            setTimeout(() => {
+              simulateAITyping(basicQuestions[0]);
+            }, 1000);
+          };
+
+          const handleCategoryChange = (confirm) => {
+            if (confirm === '예') {
+              const newCategory = chatMessages[chatMessages.length-2].content;
+              setSelectedCategory(newCategory);
+              setChatMessages(prev => [...prev, 
+                { type: 'user', content: '예' },
+                { type: 'ai', content: `${newCategory}에 대한 자료를 수집하겠습니다. 먼저 기본 정보부터 알려주세요.` }
+              ]);
+              setChatPhase('questioning');
+              setCurrentQuestionIndex(0);
+              setUserResponses({});
+              
+              setTimeout(() => {
+                simulateAITyping(basicQuestions[0]);
+              }, 1000);
+            } else {
+              setChatMessages(prev => [...prev, 
+                { type: 'user', content: '아니오' },
+                { type: 'ai', content: '아래 카테고리에서 다시 선택해 주세요.' }
+              ]);
+            }
+          };
+
+          const handleQuestionResponse = (response) => {
+            setChatMessages(prev => [...prev, { type: 'user', content: response }]);
+            
+            const allQuestions = [...basicQuestions, ...(categoryQuestions[selectedCategory] || [])];
+            const responseKey = `q_${currentQuestionIndex}`;
+            setUserResponses(prev => ({ ...prev, [responseKey]: response }));
+            
+            if (currentQuestionIndex < allQuestions.length - 1) {
+              const nextIndex = currentQuestionIndex + 1;
+              setCurrentQuestionIndex(nextIndex);
+              simulateAITyping(allQuestions[nextIndex]);
+            } else {
+              simulateAITyping('더 하고 싶은 말이 있나요?', () => {
+                setChatMessages(prev => [...prev, { 
+                  type: 'ai', 
+                  content: '더 하고 싶은 말이 있나요?', 
+                  showButtons: ['예', '아니오'] 
+                }]);
+                setChatPhase('additional');
+              });
+            }
+          };
+
+          const handleAdditionalResponse = (response) => {
+            if (response === '예') {
+              setChatMessages(prev => [...prev, 
+                { type: 'user', content: '예' },
+                { type: 'ai', content: '자유롭게 말씀해 주세요.' }
+              ]);
+            } else {
+              setChatMessages(prev => [...prev, 
+                { type: 'user', content: '아니오' },
+                { type: 'ai', content: '매칭 결과를 보시겠습니까?', showButtons: ['예', '아니오'] }
+              ]);
+              setChatPhase('complete');
+            }
+          };
+
+          const handleMatchingRequest = (response) => {
+            if (response === '예') {
+              setChatMessages(prev => [...prev, { type: 'user', content: '예' }]);
+              
+              const mockMatches = Math.random() > 0.3 ? [
+                { name: '김영희', matchCount: 12 },
+                { name: '박철수', matchCount: 8 },
+                { name: '이민수', matchCount: 6 }
+              ] : [];
+              
+              setMatches(mockMatches);
+              
+              if (mockMatches.length === 0) {
+                simulateAITyping('앱 초기입니다. 시간이 흐를수록 사용자가 늘어나므로 자주 들어와서 매칭 결과를 확인해 주세요. 추가 정보 입력을 원하실 경우 카테고리를 선택하면 AI가 도와드립니다.');
+              } else {
+                simulateAITyping('매칭 결과를 찾았습니다! 상대방을 선택하면 일대일 채팅방으로 안내됩니다.');
+              }
+            } else {
+              setChatMessages(prev => [...prev, 
+                { type: 'user', content: '아니오' },
+                { type: 'ai', content: '언제든지 매칭 결과를 확인하고 싶으시면 [매칭 결과] 버튼을 눌러주세요.' }
+              ]);
+            }
+          };
+
+          const handleSendMessage = () => {
+            if (!currentMessage.trim()) return;
+            
+            if (chatPhase === 'questioning') {
+              handleQuestionResponse(currentMessage);
+            } else if (chatPhase === 'additional') {
+              setChatMessages(prev => [...prev, { type: 'user', content: currentMessage }]);
+              simulateAITyping('감사합니다. 매칭 결과를 보시겠습니까?', () => {
+                setChatMessages(prev => [...prev, { 
+                  type: 'ai', 
+                  content: '매칭 결과를 보시겠습니까?', 
+                  showButtons: ['예', '아니오'] 
+                }]);
+                setChatPhase('complete');
+              });
+            } else {
+              setChatMessages(prev => [...prev, { type: 'user', content: currentMessage }]);
+              simulateAITyping('도움이 더 필요하시면 언제든 말씀해 주세요!');
+            }
+            
+            setCurrentMessage('');
+          };
+
+          const handleMatchSelect = (match) => {
+            setSelectedMatch(match);
+            setCurrentScreen('privateChat');
+            setPrivateMessages([
+              { type: 'other', content: '안녕하세요! 정말 저를 찾고 계셨나요?' },
+              { type: 'info', content: '💡 확인 방법 안내\n서로의 정보를 확인한 후, 옛날 사진, 지문, 유전자 등으로 최종 확인을 할 수 있습니다.' }
+            ]);
+          };
+
+          const handlePrivateMessageSend = () => {
+            if (!privateChatMessage.trim()) return;
+            
+            setPrivateMessages(prev => [...prev, { type: 'me', content: privateChatMessage }]);
+            setPrivateChatMessage('');
+            
+            setTimeout(() => {
+              const responses = [
+                '네, 맞습니다! 정말 오랜만이에요.',
+                '혹시 기억나는 것이 더 있나요?',
+                '사진을 보내드릴까요?',
+                '언제 만날 수 있을까요?'
+              ];
+              const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+              setPrivateMessages(prev => [...prev, { type: 'other', content: randomResponse }]);
+            }, 1000 + Math.random() * 2000);
+          };
+
+          const resetApp = () => {
+            setSelectedCategory('');
+            setChatMessages([{
+              type: 'ai',
+              content: '안녕하세요! 꼬꼬너에 오신 것을 환영합니다. 아래 카테고리에서 선택해 주세요.'
+            }]);
+            setChatPhase('category');
+            setCurrentQuestionIndex(0);
+            setUserResponses({});
+            setMatches([]);
+            setCurrentScreen('main');
+          };
+
+          if (currentScreen === 'login') {
+            return React.createElement('div', { className: "min-h-screen bg-gradient-to-b from-orange-50 to-orange-100 p-4" },
+              React.createElement('div', { className: "max-w-md mx-auto pt-12" },
+                React.createElement('div', { className: "text-center mb-12" },
+                  React.createElement('h1', { className: "text-3xl font-bold text-orange-600 mb-2" }, "꼬꼬너"),
+                  React.createElement('p', { className: "text-gray-600 text-sm" }, "꼬리에 꼬리를 물어 찾은 너"),
+                  React.createElement('p', { className: "text-orange-500 text-xs mt-2" }, "AI가 도와드립니다")
+                ),
+                React.createElement('div', { className: "bg-white rounded-2xl shadow-lg p-6" },
+                  React.createElement('div', { className: "space-y-4" },
+                    React.createElement('input', {
+                      type: "text",
+                      placeholder: "아이디",
+                      className: "w-full p-4 border border-gray-200 rounded-xl focus:outline-none focus:border-orange-400",
+                      value: user.username,
+                      onChange: (e) => setUser({...user, username: e.target.value})
+                    }),
+                    React.createElement('input', {
+                      type: "password",
+                      placeholder: "비밀번호",
+                      className: "w-full p-4 border border-gray-200 rounded-xl focus:outline-none focus:border-orange-400",
+                      value: user.password,
+                      onChange: (e) => setUser({...user, password: e.target.value})
+                    }),
+                    React.createElement('button', {
+                      onClick: handleLogin,
+                      className: "w-full bg-orange-500 text-white py-4 rounded-xl font-semibold hover:bg-orange-600 transition-colors"
+                    }, "로그인"),
+                    React.createElement('button', {
+                      className: "w-full bg-gray-100 text-gray-700 py-4 rounded-xl font-semibold hover:bg-gray-200 transition-colors"
+                    }, "회원가입")
+                  )
+                )
+              )
+            );
+          }
+
+          if (currentScreen === 'main') {
+            return React.createElement('div', { className: "min-h-screen bg-gray-50 flex flex-col" },
+              React.createElement('div', { className: "bg-white border-b border-gray-200 p-4 flex items-center justify-between" },
+                React.createElement('div', { className: "flex items-center gap-2" },
+                  React.createElement(Bot, { className: "text-orange-500", size: 24 }),
+                  React.createElement('h1', { className: "text-lg font-bold text-gray-800" }, "꼬꼬너 AI")
+                ),
+                React.createElement('div', { className: "flex gap-2" },
+                  React.createElement('button', {
+                    onClick: resetApp,
+                    className: "p-2 hover:bg-gray-100 rounded-lg transition-colors",
+                    title: "초기화"
+                  }, React.createElement(RotateCcw, { size: 20, className: "text-gray-600" })),
+                  React.createElement('button', {
+                    onClick: () => setCurrentScreen('login'),
+                    className: "p-2 hover:bg-gray-100 rounded-lg transition-colors",
+                    title: "로그아웃"
+                  }, React.createElement(LogOut, { size: 20, className: "text-gray-600" }))
+                )
+              ),
+              React.createElement('div', { className: "flex-1 overflow-y-auto p-4 space-y-4 pb-20" },
+                ...chatMessages.map((message, index) =>
+                  React.createElement('div', { key: index, className: `flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}` },
+                    React.createElement('div', { className: `max-w-xs md:max-w-md lg:max-w-lg xl:max-w-xl p-3 rounded-lg ${message.type === 'user' ? 'bg-orange-500 text-white' : 'bg-white text-gray-800 border border-gray-200'}` },
+                      React.createElement('div', { className: "flex items-start gap-2" },
+                        message.type === 'ai' && React.createElement(Bot, { size: 18, className: "text-orange-500 mt-0.5 flex-shrink-0" }),
+                        React.createElement('div', { className: "flex-1" },
+                          React.createElement('p', { className: "text-sm whitespace-pre-wrap" }, message.content),
+                          message.showButtons && React.createElement('div', { className: "flex gap-2 mt-3" },
+                            ...message.showButtons.map((button, btnIndex) =>
+                              React.createElement('button', {
+                                key: btnIndex,
+                                onClick: () => {
+                                  if (chatPhase === 'category') {
+                                    handleCategoryChange(button);
+                                  } else if (chatPhase === 'additional') {
+                                    handleAdditionalResponse(button);
+                                  } else if (chatPhase === 'complete') {
+                                    handleMatchingRequest(button);
+                                  }
+                                },
+                                className: "px-3 py-1 bg-orange-500 text-white text-xs rounded-full hover:bg-orange-600 transition-colors"
+                              }, button)
+                            )
+                          ),
+                          message.showSkipButton && chatPhase === 'questioning' && React.createElement('div', { className: "mt-3" },
+                            React.createElement('button', {
+                              onClick: () => handleQuestionResponse('해당사항없음'),
+                              className: "px-3 py-1 bg-gray-400 text-white text-xs rounded-full hover:bg-gray-500 transition-colors"
+                            }, "해당사항없음")
+                          )
+                        )
+                      )
+                    )
+                  )
+                ),
+                isAITyping && React.createElement('div', { className: "flex justify-start" },
+                  React.createElement('div', { className: "bg-white border border-gray-200 p-3 rounded-lg" },
+                    React.createElement('div', { className: "flex items-center gap-2" },
+                      React.createElement(Bot, { size: 18, className: "text-orange-500" }),
+                      React.createElement('div', { className: "flex gap-1" },
+                        React.createElement('div', { className: "w-2 h-2 bg-gray-400 rounded-full animate-bounce" }),
+                        React.createElement('div', { className: "w-2 h-2 bg-gray-400 rounded-full animate-bounce", style: {animationDelay: '0.1s'} }),
+                        React.createElement('div', { className: "w-2 h-2 bg-gray-400 rounded-full animate-bounce", style: {animationDelay: '0.2s'} })
+                      )
+                    )
+                  )
+                ),
+                React.createElement('div', { ref: messagesEndRef })
+              ),
+              chatPhase === 'category' && React.createElement('div', { className: "fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4" },
+                React.createElement('div', { className: "max-w-md mx-auto" },
+                  React.createElement('div', { className: "grid grid-cols-2 gap-2 mb-4" },
+                    ...categories.map((category, index) =>
+                      React.createElement('button', {
+                        key: index,
+                        onClick: () => handleCategorySelect(category),
+                        className: `p-3 rounded-lg text-sm font-medium transition-colors ${selectedCategory === category ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`
+                      }, category)
+                    )
+                  ),
+                  React.createElement('button', {
+                    onClick: () => {
+                      const mockMatches = Math.random() > 0.5 ? [
+                        { name: '김영희', matchCount: 12 },
+                        { name: '박철수', matchCount: 8 }
+                      ] : [];
+                      setMatches(mockMatches);
+                      
+                      if (mockMatches.length === 0) {
+                        setChatMessages(prev => [...prev, {
+                          type: 'ai',
+                          content: '앱 초기입니다. 시간이 흐를수록 사용자가 늘어나므로 자주 들어와서 매칭 결과를 확인해 주세요.'
+                        }]);
+                      } else {
+                        setChatMessages(prev => [...prev, {
+                          type: 'ai',
+                          content: '매칭 결과를 찾았습니다!'
+                        }]);
+                      }
+                    },
+                    className: "w-full bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+                  }, React.createElement(Search, { size: 18 }), "매칭 결과")
+                )
+              ),
+              matches.length > 0 && React.createElement('div', { className: "fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4" },
+                React.createElement('div', { className: "max-w-md mx-auto" },
+                  React.createElement('h3', { className: "font-semibold text-gray-800 mb-3" }, "매칭 결과"),
+                  React.createElement('div', { className: "space-y-2 max-h-60 overflow-y-auto" },
+                    ...matches.map((match, index) =>
+                      React.createElement('div', { key: index, className: "bg-orange-50 p-3 rounded-lg flex items-center justify-between" },
+                        React.createElement('div', {},
+                          React.createElement('span', { className: "font-semibold text-gray-800" }, match.name),
+                          React.createElement('span', { className: "text-orange-600 ml-2" }, `(${match.matchCount}개 일치)`)
+                        ),
+                        React.createElement('button', {
+                          onClick: () => handleMatchSelect(match),
+                          className: "bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2"
+                        }, React.createElement(MessageCircle, { size: 16 }), "채팅하기")
+                      )
+                    )
+                  )
+                )
+              ),
+              (chatPhase === 'questioning' || chatPhase === 'additional') && React.createElement('div', { className: "fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4" },
+                React.createElement('div', { className: "max-w-md mx-auto flex gap-2" },
+                  React.createElement('input', {
+                    type: "text",
+                    ref: inputRef,
+                    value: currentMessage,
+                    onChange: (e) => setCurrentMessage(e.target.value),
+                    onKeyPress: (e) => e.key === 'Enter' && handleSendMessage(),
+                    placeholder: "메시지를 입력하세요...",
+                    className: "flex-1 p-3 border border-gray-200 rounded-lg focus:outline-none focus:border
+                    className: "flex-1 p-3 border border-gray-200 rounded-lg focus:outline-none focus:border-orange-400"
+                 }),
+                 React.createElement('button', {
+                   onClick: handleSendMessage,
+                   className: "bg-orange-500 text-white px-4 py-3 rounded-lg hover:bg-orange-600 transition-colors"
+                 }, React.createElement(Send, { size: 18 }))
+               )
+             )
+           );
+         }
+
+         if (currentScreen === 'privateChat' && selectedMatch) {
+           return React.createElement('div', { className: "min-h-screen bg-gray-50 flex flex-col" },
+             React.createElement('div', { className: "bg-white border-b border-gray-200 p-4 flex items-center gap-3" },
+               React.createElement('button', {
+                 onClick: () => setCurrentScreen('main'),
+                 className: "p-2 hover:bg-gray-100 rounded-lg transition-colors"
+               }, React.createElement(ArrowLeft, { size: 20 })),
+               React.createElement('h2', { className: "text-lg font-semibold text-gray-800" }, `${selectedMatch.name}님과의 채팅`)
+             ),
+             React.createElement('div', { className: "flex-1 overflow-y-auto p-4 space-y-4 pb-20" },
+               ...privateMessages.map((message, index) =>
+                 React.createElement('div', { key: index, className: `flex ${message.type === 'me' ? 'justify-end' : message.type === 'info' ? 'justify-center' : 'justify-start'}` },
+                   React.createElement('div', { className: `max-w-xs md:max-w-md p-3 rounded-lg ${message.type === 'me' ? 'bg-orange-500 text-white' : message.type === 'info' ? 'bg-blue-50 text-blue-800 border border-blue-200' : 'bg-white text-gray-800 border border-gray-200'}` },
+                     React.createElement('p', { className: "text-sm whitespace-pre-wrap" }, message.content)
+                   )
+                 )
+               )
+             ),
+             React.createElement('div', { className: "fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4" },
+               React.createElement('div', { className: "max-w-md mx-auto" },
+                 React.createElement('div', { className: "flex gap-2 mb-3" },
+                   React.createElement('input', {
+                     type: "text",
+                     value: privateChatMessage,
+                     onChange: (e) => setPrivateChatMessage(e.target.value),
+                     onKeyPress: (e) => e.key === 'Enter' && handlePrivateMessageSend(),
+                     placeholder: "메시지를 입력하세요...",
+                     className: "flex-1 p-3 border border-gray-200 rounded-lg focus:outline-none focus:border-orange-400"
+                   }),
+                   React.createElement('button', {
+                     onClick: handlePrivateMessageSend,
+                     className: "bg-orange-500 text-white px-4 py-3 rounded-lg hover:bg-orange-600 transition-colors"
+                   }, React.createElement(Send, { size: 18 }))
+                 ),
+                 React.createElement('button', {
+                   onClick: () => setCurrentScreen('main'),
+                   className: "w-full bg-gray-100 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+                 }, "나가기")
+               )
+             )
+           );
+         }
+
+         return null;
+       };
+
+       ReactDOM.render(React.createElement(KokkoNeoAIApp), document.getElementById('root'));
+   </script>
+</body>
+</html>  
